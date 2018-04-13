@@ -56,14 +56,23 @@ class Statistics extends MY_Controller
 
     public function tongchi()
     {
-        //day la controllẻr de vao trong chi
-        // click vao no co bao' do? nhe'
         $this->sma->checkPermissions();
 
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
 
-        $this->data['lists'] = $this->Statistics_model->getList();
-        $this->data['total'] = $this->Statistics_model->totalPay();
+        $today = date('Y-m-d');
+        $date_from = $first_m = date('01/m/Y', strtotime($today));
+        $date_to = $last_m = date('t/m/Y', strtotime($today));
+
+        if (count($_POST) > 0) {
+            $date_from = $this->input->post('date_from');
+            $date_to = $this->input->post('date_to');
+        }
+
+        $this->data['lists'] = $this->Statistics_model->getList($date_from, $date_to);
+        $this->data['total'] = $this->Statistics_model->totalPay($date_from, $date_to);
+        $this->data['date_from'] = $date_from;
+        $this->data['date_to'] = $date_to;
 
         $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => '#', 'page' => lang('sales')));
         $meta = array('page_title' => lang('sales'), 'bc' => $bc);

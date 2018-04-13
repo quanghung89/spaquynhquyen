@@ -6,6 +6,10 @@
     a.saveCPCD, a.saveCPPS {display: none!important;}
     a.minusCPCD, a.minusCPPS {font-size: 120%;line-height: 34px;}
     #form_cpcd, #form_cpps {margin-top: 20px;}
+    .filter-date {margin-top: 25px;}
+    @media (max-width: 600px) {
+        .filter-date span {display: block;width: 100%;margin-bottom: 10px;}
+    }
 </style>
 
 <script>
@@ -255,6 +259,17 @@
     <div class="title-menu con-xs-12">
         <span>TỔNG CHI</span>
     </div>
+
+    <div class="row text-center filter-date">
+        <div class="col-xs-12">
+            <form method="post" action="<?php echo base_url(); ?>statistics/tongchi" class="filter-form">
+                <span>Từ ngày: <input type="text" name="date_from" class="input input-sm date" value="<?php echo $date_from; ?>"></span>
+                <span>Đến ngày: <input type="text" name="date_to" class="input input-sm date" value="<?php echo $date_to; ?>"></span>
+                <input type="submit" class="btn btn-sm" value="Lọc">
+            </form>
+        </div>
+    </div>
+
     <div class="row" style="margin-top: 30px">
         <div class="container">
             <div class="row">
