@@ -48,6 +48,25 @@ class Statistics extends MY_Controller
 
         $this->data['users'] = $this->site->getAllUser();
 
+        $today = date('Y-m-d');
+        $date_from = $first_m = date('01/m/Y', strtotime($today));
+        $date_to = $last_m = date('t/m/Y', strtotime($today));
+
+        if (count($_POST) > 0) {
+            $date_from = $this->input->post('date_from');
+            $date_to = $this->input->post('date_to');
+        }
+        $this->data['date_from'] = $date_from;
+        $this->data['date_to'] = $date_to;
+
+        $this->data['total'] = $this->Statistics_model->totalPay($date_from, $date_to);
+
+        $this->data['users'] = $this->site->getAllUser();
+
+        for ($i = 0; $i < count($this->data['users']); $i++) {
+            $this->data['luong'] = $this->Statistics_model->get_Luong($this->data['users'][$i]['id'], $date_from, $date_to);
+        }
+
         $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => '#', 'page' => lang('sales')));
         $meta = array('page_title' => lang('sales'), 'bc' => $bc);
         $this->page_construct('statistics/doanhthu', $meta, $this->data);
@@ -84,12 +103,18 @@ class Statistics extends MY_Controller
     {
         $this->sma->checkPermissions();
 
-        $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
-        $this->data['warehouses'] = $this->site->getAllWarehouses();
-        $this->data['warehouse_id'] = $this->session->userdata('warehouse_id');
-        $this->data['warehouse'] = $this->session->userdata('warehouse_id') ? $this->site->getWarehouseByID($this->session->userdata('warehouse_id')) : NULL;
+        $month = date('m');
+        $year = date('Y');
+        if (count($_POST) > 0) {
+            $month = $this->input->post('month');
+            $year = $this->input->post('year');
+        }
 
         $this->data['users'] = $this->site->getAllUser();
+
+        for ($i = 0; $i < count($this->data['users']); $i++) {
+            $this->data['users'][$i]['detail'] = $this->Statistics_model->getList_Luong($this->data['users'][$i]['id'], $month, $year);
+        }
 
         $bc = array(array('link' => base_url(), 'page' => lang('home')), array('link' => '#', 'page' => lang('sales')));
         $meta = array('page_title' => lang('sales'), 'bc' => $bc);
@@ -137,6 +162,7 @@ class Statistics extends MY_Controller
             //insert
             $pay_types = $this->input->post("sma_pay_type");
             $pay_danhmuc_index = $this->input->post("sma_pay_danhmuc_index");
+            $pay_danhmuc_index = ($pay_danhmuc_index != false) ? $pay_danhmuc_index : NULL;
             $sotien = $this->input->post("sotien");
             $ngaynop = $this->input->post("ngaynop");
             $noidung = $this->input->post("noidung");
@@ -159,6 +185,7 @@ class Statistics extends MY_Controller
             //update
             $pay_ids = $this->input->post("sma_pay_id_edit");
             $pay_danhmuc_index_edit = $this->input->post("sma_pay_danhmuc_index_edit");
+            $pay_danhmuc_index_edit = ($pay_danhmuc_index_edit != false) ? $pay_danhmuc_index_edit : NULL;
             $sotien_edit = $this->input->post("sotien_edit");
             $ngaynop_edit = $this->input->post("ngaynop_edit");
             $noidung_edit = $this->input->post("noidung_edit");

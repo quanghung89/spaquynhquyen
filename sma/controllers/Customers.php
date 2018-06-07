@@ -41,30 +41,29 @@ class Customers extends MY_Controller
     {
 
         $this->sma->checkPermissions('index');
-        $this->data['customer_groups'] = $this->companies_model->getAllCustomerGroups(); 
+        $this->data['customer_groups'] = $this->companies_model->getAllCustomerGroups();
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
         $this->data['action'] = $action;
 
-        
-        if($this->input->post('category')){
+
+        if ($this->input->post('category')) {
             $this->form_validation->set_rules('category', lang("form_action"), 'required');
             if ($this->form_validation->run() == true) {
                 if ($this->input->post('category') == 'delete') {
 
-                        $error = false;
-                        foreach ($_POST['val'] as $id) {
-                            if (!$this->companies_model->deleteBook($id)) {
-                                $error = true;
-                            }
+                    $error = false;
+                    foreach ($_POST['val'] as $id) {
+                        if (!$this->companies_model->deleteBook($id)) {
+                            $error = true;
                         }
-                        if ($error) {
-                            $this->session->set_flashdata('warning', lang('customers_x_deleted_have_sales'));
-                        } else {
-                            $this->session->set_flashdata('message', $this->lang->line("Xóa các book lịch thành công"));
-                        }
-                        redirect($_SERVER["HTTP_REFERER"]);
                     }
-            else {
+                    if ($error) {
+                        $this->session->set_flashdata('warning', lang('customers_x_deleted_have_sales'));
+                    } else {
+                        $this->session->set_flashdata('message', $this->lang->line("Xóa các book lịch thành công"));
+                    }
+                    redirect($_SERVER["HTTP_REFERER"]);
+                } else {
                     $this->session->set_flashdata('error', $this->lang->line("Chưa chọn book lịch"));
                     redirect($_SERVER["HTTP_REFERER"]);
                 }
@@ -83,11 +82,11 @@ class Customers extends MY_Controller
     {
 
         $this->sma->checkPermissions('index');
-        $this->data['customer_groups'] = $this->companies_model->getAllCustomerGroups(); 
+        $this->data['customer_groups'] = $this->companies_model->getAllCustomerGroups();
         $this->data['error'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('error');
         $this->data['action'] = $action;
-        $user  = $this->site->getUser();
-        if($user->warehouse_id == 'all'){
+        $user = $this->site->getUser();
+        if ($user->warehouse_id == 'all') {
             $user->warehouse_id = '';
         }
         $warehouse_id = $user->warehouse_id;
@@ -117,9 +116,10 @@ class Customers extends MY_Controller
     }
 
 
-    function search(){
+    function search()
+    {
         $data['success'] = true;
-        if(!$this->companies_model->getCompanyByPhone($this->input->post('phonenumber'))){
+        if (!$this->companies_model->getCompanyByPhone($this->input->post('phonenumber'))) {
             $data['msg'] = 'Không có thông tin';
             $data['success'] = false;
         }
@@ -128,29 +128,30 @@ class Customers extends MY_Controller
         echo json_encode($data);
     }
 
-    function getServiceChild(){   
+    function getServiceChild()
+    {
         $item = '';
-        $data['status'] = false;    
+        $data['status'] = false;
         $data1 = $this->site->getAllCategories1($this->input->post('id_c'));
         $arrAssign = $this->site->getCategoryAsgin($this->input->post('id_c'));
         foreach ($arrAssign as $key => $value) {
             $arrStaff[] = $value['sma_category_assign_userid'];
         }
-        
+
         $category->staffs = $arrStaff;
-        if($data1){
-           
+        if ($data1) {
+
 
             foreach ($data1 as $key => $value) {
                 $item[$key]['id'] = $value->id;
                 $item[$key]['text'] = $value->name;
             }
 
-            $data['item'] =  $item;
+            $data['item'] = $item;
             $data['status'] = true;
 
         }
-        if($arrStaff){
+        if ($arrStaff) {
             $data['asgin'] = $arrStaff;
             $data['status'] = true;
         }
@@ -158,7 +159,7 @@ class Customers extends MY_Controller
     }
 
     function getCustomers()
-    {   
+    {
         if ($this->input->get('cgroups')) {
             $cgroups = $this->input->get('cgroups');
         } else {
@@ -169,75 +170,73 @@ class Customers extends MY_Controller
         $this->load->library('datatables');
         $this->datatables
             ->select("1,companies.id as ci, image,customer_group_id, name, phone, companies.id as ci1, SUM(sma_books.sma_books_price) as price, note ")
-            ->join('sma_books','sma_books.sma_books_customerid = sma_companies.id','left')
+            ->join('sma_books', 'sma_books.sma_books_customerid = sma_companies.id', 'left')
             ->from("companies")
             ->where('group_name', 'customer')
             ->group_by('sma_books.sma_books_customerid')
             ->add_column("Actions", "<center><a class=\"tip\" title='" . $this->lang->line("edit_customer") . "' href='" . site_url('customers/edit/$1') . "' data-toggle='modal' data-target='#myModal'><i class=\"fa fa-edit\"></i></a> <a href='#' class='tip po' title='<b>" . $this->lang->line("delete_customer") . "</b>' data-content=\"<p>" . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' href='" . site_url('customers/delete/$1') . "'>" . lang('i_m_sure') . "</a> <button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fa fa-trash-o\"></i></a></center>", "ci");
         //->unset_column('id');
-        if($cgroups){
-            $this->datatables->where('customer_group_id',$cgroups);
+        if ($cgroups) {
+            $this->datatables->where('customer_group_id', $cgroups);
         }
         $this->datatables->unset_column('customer_group_id');
         $arr = json_decode($this->datatables->generate());
         foreach ($arr->aaData as $key => $value) {
-            if($value[0]){
-                $arr->aaData[$key][0] = $key +1;
+            if ($value[0]) {
+                $arr->aaData[$key][0] = $key + 1;
             }
             // if($value[5]){
             //     $arr->aaData[$key][5] = '<div style="text-align: center;"><a href="#">Xem lịch sử</a></div>';
             // }
 
-            
+
         }
 
         echo json_encode($arr);
     }
 
-    
-     function getHistoryBook()
-    {   
+
+    function getHistoryBook()
+    {
 
 
         if ($this->input->get('warehouse_id')) {
             $warehouseid = $this->input->get('warehouse_id');
-        } 
+        }
 
         if ($this->input->get('disable')) {
             $status = $this->input->get('disable');
         }
 
-        if($this->input->get('start_date')){
+        if ($this->input->get('start_date')) {
 
-            $start_date = strtotime($this->sma->fsd($this->input->get('start_date')).' 00:00:00');
+            $start_date = strtotime($this->sma->fsd($this->input->get('start_date')) . ' 00:00:00');
         }
 
-        if($this->input->get('end_date')){
-            $end_date = strtotime($this->sma->fsd($this->input->get('end_date')).' 23:59:59'  );
+        if ($this->input->get('end_date')) {
+            $end_date = strtotime($this->sma->fsd($this->input->get('end_date')) . ' 23:59:59');
         }
 
-        if($this->input->get('customers')){
+        if ($this->input->get('customers')) {
             $customers = $this->input->get('customers');
         }
 
 
-        if($this->input->get('user_id')){
+        if ($this->input->get('user_id')) {
             $user = $this->input->get('user_id');
         }
 
-        if($status == 'all'){
+        if ($status == 'all') {
             $status = NULL;
         }
 
-        if($warehouseid == 'all'){
+        if ($warehouseid == 'all') {
             $warehouseid = NULL;
         }
 
-         if($user == 'all'){
+        if ($user == 'all') {
             $user = NULL;
         }
-
-        
 
 
         // "<center><a class=\"tip\" title='" . $this->lang->line("Sửa book lịch") . "' href='" . site_url('customers/book/$1') . "''><i class=\"fa fa-edit\"></i></a> <a href='#' class='tip po' title='<b>" . $this->lang->line("Xóa book lịch") . "</b>' data-content=\"<p>" . lang('r_u_sure') . "</p><a class='btn btn-danger po-delete' href='" . site_url('customers/delete_book/$1') . "'>" . lang('i_m_sure') . "</a> <button class='btn po-close'>" . lang('no') . "</button>\"  rel='popover'><i class=\"fa fa-trash-o\"></i></a></center>"
@@ -264,8 +263,8 @@ class Customers extends MY_Controller
             
             <li><a href="' . site_url('customers/book/$1') . '"><i class="fa fa-edit"></i> ' . lang('Sửa book lịch') . '</a></li>
             <li><a  data-toggle="modal" data-target="#myModal" href="' . site_url('customers/complete_book/$1') . '"><i class="fa fa-check-circle"></i> ' . lang('Thanh toán') . '</a></li>';
-       // <li><a href="' . site_url('products/add_adjustment/$1/' . ($warehouse_id ? $warehouse_id : '')) . '" data-toggle="modal" data-target="#myModal"><i class="fa fa-filter"></i> '
-       //      . lang('adjust_quantity') . '</a></li>
+        // <li><a href="' . site_url('products/add_adjustment/$1/' . ($warehouse_id ? $warehouse_id : '')) . '" data-toggle="modal" data-target="#myModal"><i class="fa fa-filter"></i> '
+        //      . lang('adjust_quantity') . '</a></li>
         $action .= '
             
             
@@ -283,53 +282,52 @@ class Customers extends MY_Controller
             ->select("1,sma_books.sma_books_customerid, sma_books.sma_books_categoryparentname, sma_books.sma_books_categorychildname, sma_warehouses.name as wname, sma_books.sma_books_staffid,
                   GROUP_CONCAT(sma_staffasgin.sma_staffasgin_staffid SEPARATOR ',') as inamestaffass, sma_books.sma_books_starttime,sma_books.sma_books_price,sma_books.sma_books_status")
             ->from("sma_books")
-            ->join("sma_companies","sma_books.sma_books_customerid = sma_companies.id","left")
-            ->join("sma_warehouses",'sma_books.sma_books_warehouseid = sma_warehouses.id','left')
-            ->join("sma_staffasgin",'sma_staffasgin.sma_staffasgin_idbook = sma_books.sma_books_id','left')
-
+            ->join("sma_companies", "sma_books.sma_books_customerid = sma_companies.id", "left")
+            ->join("sma_warehouses", 'sma_books.sma_books_warehouseid = sma_warehouses.id', 'left')
+            ->join("sma_staffasgin", 'sma_staffasgin.sma_staffasgin_idbook = sma_books.sma_books_id', 'left')
             ->group_by('sma_books.sma_books_id')
-            ->add_column("Actions", $action , "sma_books.sma_books_id");
+            ->add_column("Actions", $action, "sma_books.sma_books_id");
         //->unset_column('id');
 
-            // $user = $this->site->getUser($this->session->userdata('user_id'));
-        if(!$this->Owner){
-            $this->datatables->where('sma_books.sma_books_staffid',$this->session->userdata('user_id'));
+        // $user = $this->site->getUser($this->session->userdata('user_id'));
+        if (!$this->Owner) {
+            $this->datatables->where('sma_books.sma_books_staffid', $this->session->userdata('user_id'));
         }
 
-        if($customers){
-            $this->datatables->where('sma_books.sma_books_customerid',$customers);
+        if ($customers) {
+            $this->datatables->where('sma_books.sma_books_customerid', $customers);
         }
 
-        if($this->Owner || $this->Admin){
+        if ($this->Owner || $this->Admin) {
 
-            if($warehouseid){
-                $this->datatables->where('sma_books_warehouseid',$warehouseid);
+            if ($warehouseid) {
+                $this->datatables->where('sma_books_warehouseid', $warehouseid);
             }
         }
 
-        if($status){
-            $this->datatables->where('sma_books_status',$status);
+        if ($status) {
+            $this->datatables->where('sma_books_status', $status);
         }
 
-        if($user){
-            $this->datatables->where('sma_books.sma_books_staffid',$user);
+        if ($user) {
+            $this->datatables->where('sma_books.sma_books_staffid', $user);
         }
 
-        if($start_date && $end_date){
-            $this->datatables->where($this->db->dbprefix('books').'.sma_books_starttime BETWEEN "' . $start_date . '" and "' . $end_date . '"');
-        }else{
-            if($start_date){
-                $this->datatables->where($this->db->dbprefix('books').'.sma_books_starttime >=',$start_date);
+        if ($start_date && $end_date) {
+            $this->datatables->where($this->db->dbprefix('books') . '.sma_books_starttime BETWEEN "' . $start_date . '" and "' . $end_date . '"');
+        } else {
+            if ($start_date) {
+                $this->datatables->where($this->db->dbprefix('books') . '.sma_books_starttime >=', $start_date);
             }
-            if($end_date){
-                $this->datatables->where($this->db->dbprefix('books').'.sma_books_starttime <=',$end_date);
+            if ($end_date) {
+                $this->datatables->where($this->db->dbprefix('books') . '.sma_books_starttime <=', $end_date);
             }
         }
         // $this->datatables->unset_column('customer_group_id');
         $this->datatables->unset_column('sma_books.sma_books_customerid');
         $arr = json_decode($this->datatables->generate());
         foreach ($arr->aaData as $key => $value) {
-            $arr->aaData[$key][0] = $key +1;
+            $arr->aaData[$key][0] = $key + 1;
             $arr->aaData[$key][6] = $this->sma->ihrld($value[6]);
             // $arr->aaData[$key][9] = $this->sma->ihrld($value[9]);
             // if($value[10]){
@@ -346,10 +344,10 @@ class Customers extends MY_Controller
 
             $arr->aaData[$key][5] = implode(', ', $arrStaffName);
             $arr->aaData[$key][8] = 'Chưa hoàn thành';
-            if($value[8] == 1){
+            if ($value[8] == 1) {
                 $arr->aaData[$key][8] = 'Hoàn thành';
             }
-            if($value[8] == 2){
+            if ($value[8] == 2) {
                 $arr->aaData[$key][8] = 'Hủy';
             }
         }
@@ -357,37 +355,37 @@ class Customers extends MY_Controller
         echo json_encode($arr);
     }
 
-      function getBooks()
-    {   
+    function getBooks()
+    {
 
 
         if ($this->input->get('warehouse_id')) {
             $warehouseid = $this->input->get('warehouse_id');
-        } 
+        }
 
         if ($this->input->get('disable')) {
             $status = $this->input->get('disable');
         }
 
-        if($this->input->get('start_date')){
+        if ($this->input->get('start_date')) {
 
-            $start_date = strtotime($this->sma->fsd($this->input->get('start_date')).' 00:00:00');
+            $start_date = strtotime($this->sma->fsd($this->input->get('start_date')) . ' 00:00:00');
         }
 
-        if($this->input->get('end_date')){
-            $end_date = strtotime($this->sma->fsd($this->input->get('end_date')).' 23:59:59'  );
+        if ($this->input->get('end_date')) {
+            $end_date = strtotime($this->sma->fsd($this->input->get('end_date')) . ' 23:59:59');
         }
 
-        if($status == 'all'){
+        if ($status == 'all') {
             $status = NULL;
         }
 
-        if($warehouseid == 'all'){
+        if ($warehouseid == 'all') {
             $warehouseid = NULL;
         }
 
         $user = $this->site->getUser();
-        if($user->warehouse_id == 'all'){
+        if ($user->warehouse_id == 'all') {
             $user->warehouse_id = '';
         }
 
@@ -416,8 +414,8 @@ class Customers extends MY_Controller
             
             <li><a href="' . site_url('customers/book/$1') . '"><i class="fa fa-edit"></i> ' . lang('Sửa book lịch') . '</a></li>
             <li><a  data-toggle="modal" data-target="#myModal" href="' . site_url('customers/complete_book/$1') . '"><i class="fa fa-check-circle"></i> ' . lang('Thanh toán') . '</a></li>';
-       // <li><a href="' . site_url('products/add_adjustment/$1/' . ($warehouse_id ? $warehouse_id : '')) . '" data-toggle="modal" data-target="#myModal"><i class="fa fa-filter"></i> '
-       //      . lang('adjust_quantity') . '</a></li>
+        // <li><a href="' . site_url('products/add_adjustment/$1/' . ($warehouse_id ? $warehouse_id : '')) . '" data-toggle="modal" data-target="#myModal"><i class="fa fa-filter"></i> '
+        //      . lang('adjust_quantity') . '</a></li>
         $action .= '
             
             
@@ -435,51 +433,49 @@ class Customers extends MY_Controller
             ->select("1,sma_books.sma_books_id, sma_books.sma_books_customername,sma_companies.phone, sma_companies.note, sma_books.sma_books_categoryparentname, sma_books.sma_books_categorychildname, sma_warehouses.name as wname, sma_books.sma_books_starttime, sma_books.sma_books_endtime,sma_books.sma_books_endtime1, sma_books.sma_books_staffid,
                   GROUP_CONCAT(sma_staffasgin.sma_staffasgin_staffid SEPARATOR ',') as inamestaffass, sma_books.sma_books_price,sma_books.sma_books_status")
             ->from("sma_books")
-            ->join("sma_companies","sma_books.sma_books_customerid = sma_companies.id","left")
-            ->join("sma_warehouses",'sma_books.sma_books_warehouseid = sma_warehouses.id','left')
-            ->join("sma_staffasgin",'sma_staffasgin.sma_staffasgin_idbook = sma_books.sma_books_id','left')
-
+            ->join("sma_companies", "sma_books.sma_books_customerid = sma_companies.id", "left")
+            ->join("sma_warehouses", 'sma_books.sma_books_warehouseid = sma_warehouses.id', 'left')
+            ->join("sma_staffasgin", 'sma_staffasgin.sma_staffasgin_idbook = sma_books.sma_books_id', 'left')
             ->group_by('sma_books.sma_books_id')
-            ->add_column("Actions", $action , "sma_books.sma_books_id");
+            ->add_column("Actions", $action, "sma_books.sma_books_id");
         //->unset_column('id');
 
-            // $user = $this->site->getUser($this->session->userdata('user_id'));
-        if(!$this->Owner){
-            $this->db->where('sma_books.sma_books_staffid',$this->session->userdata('user_id'));
-         
+        // $user = $this->site->getUser($this->session->userdata('user_id'));
+        if (!$this->Owner) {
+            $this->db->where('sma_books.sma_books_staffid', $this->session->userdata('user_id'));
 
 
         }
 
-        if($this->Owner || $this->Admin){
+        if ($this->Owner || $this->Admin) {
 
-            if($warehouseid){
-                $this->datatables->where('sma_books_warehouseid',$warehouseid);
+            if ($warehouseid) {
+                $this->datatables->where('sma_books_warehouseid', $warehouseid);
             }
         }
 
-        if($status){
-            $this->datatables->where('sma_books_status',$status);
+        if ($status) {
+            $this->datatables->where('sma_books_status', $status);
         }
 
-        if($start_date && $end_date){
-            $this->db->where($this->db->dbprefix('books').'.sma_books_starttime BETWEEN "' . $start_date . '" and "' . $end_date . '"');
-        }else{
-            if($start_date){
-                $this->db->where($this->db->dbprefix('books').'.sma_books_starttime >=',$start_date);
+        if ($start_date && $end_date) {
+            $this->db->where($this->db->dbprefix('books') . '.sma_books_starttime BETWEEN "' . $start_date . '" and "' . $end_date . '"');
+        } else {
+            if ($start_date) {
+                $this->db->where($this->db->dbprefix('books') . '.sma_books_starttime >=', $start_date);
             }
-            if($end_date){
-                $this->db->where($this->db->dbprefix('books').'.sma_books_starttime <=',$end_date);
+            if ($end_date) {
+                $this->db->where($this->db->dbprefix('books') . '.sma_books_starttime <=', $end_date);
             }
         }
         // $this->datatables->unset_column('customer_group_id');
 
         $arr = json_decode($this->datatables->generate());
         foreach ($arr->aaData as $key => $value) {
-            $arr->aaData[$key][0] = $key +1;
+            $arr->aaData[$key][0] = $key + 1;
             $arr->aaData[$key][8] = $this->sma->ihrld($value[8]);
             $arr->aaData[$key][9] = $value[9];
-            if($value[10]){
+            if ($value[10]) {
                 $arr->aaData[$key][10] = $value[10];
             }
             $arr->aaData[$key][11] = $this->site->getUser($value[11])->last_name;
@@ -492,42 +488,45 @@ class Customers extends MY_Controller
             }
 
             $arr->aaData[$key][12] = implode(', ', $arrStaffName);
-            $arr->aaData[$key][14] = 'Chưa hoàn thành';            
-            if($value[14] == 1){
+            $arr->aaData[$key][14] = 'Chưa hoàn thành';
+            if ($value[14] == 1) {
                 $arr->aaData[$key][14] = 'Hoàn thành';
             }
-            if($value[14] == 2){
-                $arr->aaData[$key][14] = 'Hủy';                
+            if ($value[14] == 2) {
+                $arr->aaData[$key][14] = 'Hủy';
             }
         }
 
         echo json_encode($arr);
     }
 
-    function cancel_book($id){
-        $inv = $this->site->getBookByID($id); 
-         if($inv->sma_books_status != 0){
-            $this->sma->checkPermissionsModelView(false,true,'','Không thể thanh toán');
+    function cancel_book($id)
+    {
+        $inv = $this->site->getBookByID($id);
+        if ($inv->sma_books_status != 0) {
+            $this->sma->checkPermissionsModelView(false, true, '', 'Không thể thanh toán');
         }
         if ($this->companies_model->cancelBook($id)) {
-            if($this->input->is_ajax_request()) {
-                echo lang("Xóa book lịch thành công"); die();
+            if ($this->input->is_ajax_request()) {
+                echo lang("Xóa book lịch thành công");
+                die();
             }
             $this->session->set_flashdata('message', lang('Hủy book lịch thành công'));
             redirect('customers/list_book');
         }
     }
 
-    function delete_book($id){
+    function delete_book($id)
+    {
         if ($this->input->get('id')) {
             $id = $this->input->get('id');
         }
 
-      
 
         if ($this->companies_model->deleteBook($id)) {
-            if($this->input->is_ajax_request()) {
-                echo lang("Xóa book lịch thành công"); die();
+            if ($this->input->is_ajax_request()) {
+                echo lang("Xóa book lịch thành công");
+                die();
             }
             $this->session->set_flashdata('message', lang('Xóa book lịch thành công'));
             redirect('welcome');
@@ -540,8 +539,8 @@ class Customers extends MY_Controller
         // $this->sma->checkPermissions(false, true);
         $inv = $this->site->getBookByID($id);
 
-        if($inv->sma_books_status != 0){
-            $this->sma->checkPermissionsModelView(false,true,'','Không thể thanh toán');
+        if ($inv->sma_books_status != 0) {
+            $this->sma->checkPermissionsModelView(false, true, '', 'Không thể thanh toán');
         }
 
         $this->form_validation->set_rules('price', $this->lang->line("số tiền thanh toán thực tế"), 'required');
@@ -551,27 +550,26 @@ class Customers extends MY_Controller
                 'sma_books_endtime1' => strtotime($this->sma->fld($this->input->post('endtime1'))),
                 'sma_books_price' => str_replace(",", "", $this->input->post('price')),
                 'sma_books_status' => 1,
-               
+
             );
-        } 
+        }
 
         if ($this->form_validation->run()) {
-            if($cid = $this->companies_model->completeBook($id,$data)){
+            if ($cid = $this->companies_model->completeBook($id, $data)) {
                 $this->session->set_flashdata('message', lang('Thanh toán thành công'));
-            }else{
+            } else {
                 $this->session->set_flashdata('error', lang('Thanh toán thất bại'));
             }
             redirect($_SERVER["HTTP_REFERER"]);
-            
+
         } else {
 
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
             $this->data['modal_js'] = $this->site->modal_js();
-            $this->data['inv'] = $inv;            
+            $this->data['inv'] = $inv;
             $this->load->view($this->theme . 'customers/complete_book', $this->data);
         }
     }
-
 
 
     function add()
@@ -589,9 +587,9 @@ class Customers extends MY_Controller
                 'group_name' => 'customer',
                 'customer_group_id' => $this->Settings->customer_group,
                 'customer_group_name' => $cg->name,
-                'address' => $this->input->post('address'),  
+                'address' => $this->input->post('address'),
                 'phone' => $this->input->post('phone'),
-               
+
             );
             if ($_FILES['image']['size'] > 0) {
                 $this->load->library('upload');
@@ -623,23 +621,22 @@ class Customers extends MY_Controller
                 }
 
 
-
             }
-        } 
+        }
 
         if ($this->form_validation->run() == true && $this->input->is_ajax_request()) {
-            if($cid = $this->companies_model->addCompany($data)){
+            if ($cid = $this->companies_model->addCompany($data)) {
                 echo json_encode(array(
                     'msg' => 'Thêm thành công',
                     'success' => true,
                 ));
-            }else{
+            } else {
                 echo json_encode(array(
                     'msg' => 'Thêm thất bại',
                     'success' => false,
                 ));
             }
-            
+
         } else {
 
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
@@ -649,53 +646,54 @@ class Customers extends MY_Controller
         }
     }
 
-    function check_error(){
+    function check_error()
+    {
         $id = $this->input->post('id');
         $val = $this->input->post('valphone');
         $flag = true;
-        
+
 
         $all = $this->companies_model->getAllCustomerCompanies();
-        
+
         $er = '';
-       
-        if($val != ''){
+
+        if ($val != '') {
             foreach ($all as $key => $value) {
                 $phoneArr = explode(",", $value->phone);
-               
+
                 foreach ($phoneArr as $key1 => $value1) {
-                    if($value1 == $val){                                          
-                        $er = $val;                       
-                        $flag =  false;
+                    if ($value1 == $val) {
+                        $er = $val;
+                        $flag = false;
                     }
                 }
             }
         }
 
-        if($id){
+        if ($id) {
             $this1 = $this->companies_model->getCompanyByID($id);
-            
-                $phoneArr1 = explode(",", $this1->phone);
-                
-                foreach ($phoneArr1 as $key1 => $value1) {
-                    if($value1 == $val){                                          
-                        $flag =  true;
-                    }
+
+            $phoneArr1 = explode(",", $this1->phone);
+
+            foreach ($phoneArr1 as $key1 => $value1) {
+                if ($value1 == $val) {
+                    $flag = true;
                 }
-           
+            }
+
         }
 
-        
-        if($flag==false){
+
+        if ($flag == false) {
             echo json_encode(array(
                     'success' => false,
-                    'msg' => 'Số điện thoại đã '. $er .' tồn tại',
+                    'msg' => 'Số điện thoại đã ' . $er . ' tồn tại',
                     'number' => $er,
                 )
             );
-        }else{
+        } else {
             echo json_encode(array(
-                    'success' => true,                    
+                    'success' => true,
                 )
             );
         }
@@ -721,12 +719,12 @@ class Customers extends MY_Controller
                 'email' => $this->input->post('email'),
                 'group_id' => '3',
                 'group_name' => 'customer',
-                'address' => $this->input->post('address'),  
+                'address' => $this->input->post('address'),
                 'phone' => $this->input->post('phone'),
-               
+
             );
 
-            if($this->input->post('img') == $company_details->image){
+            if ($this->input->post('img') == $company_details->image) {
                 if ($_FILES['image']['size'] > 0) {
                     $this->load->library('upload');
                     $config['upload_path'] = $this->upload_path;
@@ -758,15 +756,15 @@ class Customers extends MY_Controller
                 }
             }
 
-        } 
+        }
         if ($this->form_validation->run() == true && $this->input->is_ajax_request()) {
-            if($this->companies_model->updateCompany($id, $data)){
-                 echo json_encode(array(
+            if ($this->companies_model->updateCompany($id, $data)) {
+                echo json_encode(array(
                     'msg' => 'Sửa thành công',
                     'success' => true,
                 ));
-            }else{
-                 echo json_encode(array(
+            } else {
+                echo json_encode(array(
                     'msg' => 'Sửa thất bại',
                     'success' => false,
                 ));
@@ -797,116 +795,115 @@ class Customers extends MY_Controller
 
     }
 
-    function book($id = NULL,$change=null)
+    function book($id = NULL, $change = null)
     {
         $this->sma->checkPermissions(false, true);
 
         if ($this->input->get('id')) {
             $id = $this->input->get('id');
         }
-        
+
         $this->form_validation->set_rules('name_customer', $this->lang->line("Tên khách hàng"), 'required');
         $this->form_validation->set_rules('phone_customer', $this->lang->line("Số điện thoại"), 'required');
         $this->form_validation->set_rules('category_parent', $this->lang->line("Dịch vụ"), 'required');
         $this->form_validation->set_rules('time_work_book', $this->lang->line("Giờ làm"), 'required');
 
 
-        if($this->form_validation->run() == true){
+        if ($this->form_validation->run() == true) {
             $data = array(
                 'customername' => $this->input->post('name_customer'),
                 'customerid' => $this->input->post('id_cus'),
                 'note' => $this->input->post('note'),
-                'starttime' => strtotime($this->sma->fld($this->input->post('time_work_book'))),  
+                'starttime' => strtotime($this->sma->fld($this->input->post('time_work_book'))),
                 'warehouseid' => $this->input->post('warehouse_id'),
                 'category_parent' => $this->input->post('category_parent'),
                 'category_child' => $this->input->post('category_child'),
-                'staff_asgin' => $this->input->post('staff_asgin'),  
-                'phonecustomer' => $this->input->post('phone_customer'),            
+                'staff_asgin' => $this->input->post('staff_asgin'),
+                'phonecustomer' => $this->input->post('phone_customer'),
             );
             $timeparent = $this->site->getCategoryByID($data['category_parent'])->time;
             $total_price = $this->site->getCategoryByID($data['category_parent'])->price;
-            $endtime = strtotime('+'. $timeparent .' minutes',$data['starttime']);
-            if($data['category_child']){
+            $endtime = strtotime('+' . $timeparent . ' minutes', $data['starttime']);
+            if ($data['category_child']) {
                 $timechild = $this->site->getCategoryByID($data['category_child'])->time;
-                $endtime = strtotime('+'. $timechild .' minutes',$endtime);
-                $data['category_child_name']  = $this->site->getCategoryByID($data['category_child'])->name;
+                $endtime = strtotime('+' . $timechild . ' minutes', $endtime);
+                $data['category_child_name'] = $this->site->getCategoryByID($data['category_child'])->name;
                 $total_price += $this->site->getCategoryByID($data['category_child'])->price;
             }
             $data['category_parent_name'] = $this->site->getCategoryByID($data['category_parent'])->name;
             $data['sma_books_price'] = $total_price;
             $data['endtime'] = $endtime;
             $id_book1 = NULL;
-            if($id){
+            if ($id) {
                 $id_book1 = $id;
             }
-            if($this->input->post('staff')){
+            if ($this->input->post('staff')) {
                 $data['staff'] = $this->input->post('staff_id');
-               
-            }else{
+
+            } else {
                 $time = array(
                     'start_time' => $data['starttime'],
-                    'end_time'   => $data['endtime'],
+                    'end_time' => $data['endtime'],
                 );
                 foreach ($this->site->getAllUserByWarhouseID($data['warehouseid']) as $key => $value) {
-                    
-                    $detail = $this->sma->getUserWork($value['id'],$time,$id_book1);
-                    if($detail['status'] == 1 && $detail['busy'] == 0){
-                        $data['staff'] = $value['id'];                       
+
+                    $detail = $this->sma->getUserWork($value['id'], $time, $id_book1);
+                    if ($detail['status'] == 1 && $detail['busy'] == 0) {
+                        $data['staff'] = $value['id'];
                         break;
-                    }             
+                    }
                 }
 
-                
 
             }
 
         }
 
 
-        if($this->form_validation->run() == true){
-            if(!$id){
-                if($this->companies_model->addBook($data)){
+        if ($this->form_validation->run() == true) {
+            if (!$id) {
+                if ($this->companies_model->addBook($data)) {
                     $this->session->set_flashdata('message', lang('Thêm book lịch thành công'));
-                }else{
+                } else {
                     $this->session->set_flashdata('error', lang('Thêm book lịch thất bại'));
                 }
                 redirect('customers/list_book/');
 
-            }else{
-                if($change){
-                    if($this->companies_model->changeBook($id,$data)){
+            } else {
+                if ($change) {
+                    if ($this->companies_model->changeBook($id, $data)) {
                         $this->session->set_flashdata('message', lang('Sửa book lịch thành công'));
-                    }else{
+                    } else {
                         $this->session->set_flashdata('error', lang('Sửa book lịch thất bại'));
                     }
-                }else{
-                    if($this->companies_model->updateBook($id,$data)){
+                } else {
+                    if ($this->companies_model->updateBook($id, $data)) {
                         $this->session->set_flashdata('message', lang('Sửa book lịch thành công'));
-                    }else{
-                        $this->session->set_flashdata('error', lang('Sửa book lịch thất bại'));                    
+                    } else {
+                        $this->session->set_flashdata('error', lang('Sửa book lịch thất bại'));
                     }
                 }
                 redirect('customers/list_book/');
             }
-        }else{
+        } else {
 
             $cate = $this->site->getAllCategories1();
             foreach ($cate as $key => $value) {
-                if($value->id_parent){
+                if ($value->id_parent) {
                     $cate[$key]->name_parent = $this->site->getCategoryByID($value->id_parent)->name;
-                } 
+                }
             }
-            
+
             $user = $this->site->getUser();
 
             $this->data['warehouses'] = $this->site->getAllWarehouses(null);
-            
+
             $this->data['staffs'] = $this->site->getAllUser();
             $this->data['id'] = $id;
             $this->data['categories'] = $cate;
             $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
             $this->data['modal_js'] = $this->site->modal_js();
-            if($id){
+            if ($id) {
                 $inv = $this->site->getBooks($id);
                 $inv->staffname = $this->site->getUser($inv->sma_books_staffid)->last_name;
                 $staff_asgin = $this->site->getStaffAssByIDBook($inv->sma_books_id);
@@ -920,7 +917,7 @@ class Customers extends MY_Controller
             }
 
 
-            if($change){
+            if ($change) {
                 $this->data['change'] = $change;
             }
             // $this->data['company'] = $this->companies_model->getCompanyByID($company_id);
@@ -979,13 +976,13 @@ class Customers extends MY_Controller
 
     function history_cate($company_id = NULL)
     {
-        
-            $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
-            $this->data['modal_js'] = $this->site->modal_js();
-            $this->data['id_customer'] = $company_id;
-            $this->data['users'] = $this->site->getAllUserByWarhouseID(null,1);
-            $this->load->view($this->theme . 'customers/history_cate', $this->data);
-    
+
+        $this->data['error'] = (validation_errors() ? validation_errors() : $this->session->flashdata('error'));
+        $this->data['modal_js'] = $this->site->modal_js();
+        $this->data['id_customer'] = $company_id;
+        $this->data['users'] = $this->site->getAllUserByWarhouseID(null, 1);
+        $this->load->view($this->theme . 'customers/history_cate', $this->data);
+
     }
 
     function import_csv()
@@ -1073,10 +1070,11 @@ class Customers extends MY_Controller
         }
     }
 
-    function check_customer(){
+    function check_customer()
+    {
         $phone = $this->input->post('phone');
         $inv = $this->site->getCompanyByPhone($phone);
-        if(!$inv->note){
+        if (!$inv->note) {
             $inv->note = '';
         }
         echo json_encode($inv);
@@ -1125,60 +1123,59 @@ class Customers extends MY_Controller
     }
 
 
-    function getStaff(){
+    function getStaff()
+    {
 
-        if($this->input->post('time')){
+        if ($this->input->post('time')) {
             $time1 = array(
-                'start_time' => strtotime($this->sma->fld($this->input->post('time')))  ,                    
+                'start_time' => strtotime($this->sma->fld($this->input->post('time'))),
             );
 
         }
         $id_book = NULL;
-        if($this->input->post('id_book')){
+        if ($this->input->post('id_book')) {
             $id_book = $this->input->post('id_book');
             $data_book = $this->site->getBookByID($id_book);
         }
-            $user = $this->site->getAllUserByWarhouseID($this->input->post('warehouse_id'),null, null);
-            foreach ($user as $key => $value) { 
+        $user = $this->site->getAllUserByWarhouseID($this->input->post('warehouse_id'), null, null);
+        foreach ($user as $key => $value) {
 
-             
 
-                if($data_book->sma_books_starttime <= strtotime($this->sma->fld($this->input->post('time'))) && strtotime($this->sma->fld($this->input->post('time'))) <= $data_book->sma_books_endtime){
-                    $detail = $this->sma->getUserWork($value['id'],$time1,$id_book);
-                }else{
-                    $detail = $this->sma->getUserWork($value['id'],$time1, null);
-                }
+            if ($data_book->sma_books_starttime <= strtotime($this->sma->fld($this->input->post('time'))) && strtotime($this->sma->fld($this->input->post('time'))) <= $data_book->sma_books_endtime) {
+                $detail = $this->sma->getUserWork($value['id'], $time1, $id_book);
+            } else {
+                $detail = $this->sma->getUserWork($value['id'], $time1, null);
+            }
 
-                if($detail['status'] == 1){
-                  $status = 'Hoạt động';
-                  $total = 1;
-                  $detail['class'] = '';
-                  if($detail['busy'] == 1){
+            if ($detail['status'] == 1) {
+                $status = 'Hoạt động';
+                $total = 1;
+                $detail['class'] = '';
+                if ($detail['busy'] == 1) {
                     $busy = 'Bận';
-                    $total = 2;                   
-                  }else{
+                    $total = 2;
+                } else {
                     $busy = null;
-                  }
-                }else{
-                  $busy = null;
-                  $status = 'Nghỉ';
-                  $total = 3;
-                  if($detail['class'] != 'Nghỉ'){
+                }
+            } else {
+                $busy = null;
+                $status = 'Nghỉ';
+                $total = 3;
+                if ($detail['class'] != 'Nghỉ') {
                     $total = 4;
-                  }else{
+                } else {
                     $class1 = 'Nghỉ';
                     $total = 3;
-                  }
                 }
-
-                
-
-                $user[$key]['status'] = $detail['status'];
-                $user[$key]['busy'] = $detail['busy'];
-                $user[$key]['class'] = $detail['class']; 
-                $user[$key]['status_active'] = $total;
-
             }
+
+
+            $user[$key]['status'] = $detail['status'];
+            $user[$key]['busy'] = $detail['busy'];
+            $user[$key]['class'] = $detail['class'];
+            $user[$key]['status_active'] = $total;
+
+        }
         echo json_encode($user);
     }
 
@@ -1305,7 +1302,6 @@ class Customers extends MY_Controller
             redirect($_SERVER["HTTP_REFERER"]);
         }
     }
-
 
 
     function customer_actions()

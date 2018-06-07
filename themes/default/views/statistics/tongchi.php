@@ -265,7 +265,7 @@
             <form method="post" action="<?php echo base_url(); ?>statistics/tongchi" class="filter-form">
                 <span>Từ ngày: <input type="text" name="date_from" class="input input-sm date" value="<?php echo $date_from; ?>"></span>
                 <span>Đến ngày: <input type="text" name="date_to" class="input input-sm date" value="<?php echo $date_to; ?>"></span>
-                <input type="submit" class="btn btn-sm" value="Lọc">
+                <input type="submit" class="btn btn-sm btn-warning" value="Lọc">
             </form>
         </div>
     </div>
@@ -431,6 +431,7 @@
                             <div class="container cpps">
                                 <div class="col-sm-11">
                                     <input type="hidden" class="form-control" name="sma_pay_type[]" value="1">
+                                    <input type="hidden" class="form-control" name="sma_pay_danhmuc_index[]" value="0">
                                     <div class="form-group col-sm-4 col-md-4 col-lg-4">
                                         <label for="">Số tiền:</label>
                                         <input type="text" name="sotien[]" class="form-control" placeholder="Nhập số tiền">
